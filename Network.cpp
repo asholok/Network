@@ -73,6 +73,10 @@ int validateMask(int maskLength) {
 }
 
 Network::Network(std::string address, int maskLength) {
+	subnets[2];
+	for ( int i = 0; i < 2; i++ ) {
+		subnets[i] = NULL;
+	}
 	this->intIpAddress = validateIP(address);
 	this->maskLength = validateMask(maskLength);
 	this->strIpAddress = address;
@@ -103,6 +107,9 @@ std::string Network::getBroadcastAddress() {
 }
 
 std::string Network::getFirstUsableAddress() {
+	if ( maskLength > 30 ) {
+		return NULL;
+	}
 	size_t firstUsableAddress = netPart + 1;
 	std::string result = convertToIpString(firstUsableAddress);
 
@@ -110,6 +117,9 @@ std::string Network::getFirstUsableAddress() {
 }
 
 std::string Network::getLastUsableAddress() {
+	if ( maskLength > 30 ) {
+		return NULL;
+	}
 	size_t lastAddressSufix = maxBrodcastValue - ((maxBrodcastValue >> hostShift) << hostShift) - 1;
 	size_t lastUsableIp = netPart ^ lastAddressSufix;
 	std::string result = convertToIpString(lastUsableIp);
@@ -127,7 +137,7 @@ int Network::getMaskLength() {
 	return maskLength;
 }
 
-int Network::getTotalHosts() {
+size_t Network::getTotalHosts() {
 	return pow(2, 32-maskLength) - 2;
 }
 
@@ -144,5 +154,15 @@ bool Network::isPublic() {
 }
 
 Network* Network::getSubnets() {
-	
+	int newMaskLength;
+
+	if ( subnets[0] != NULL ) {
+		return subnets;
+	}
+	if ( maskLength < 30 ) {
+		newMaskLength = maskLength + 1
+	} else {
+		throw NetworkException(3);
+	}
+	subnets[0] = new Network(strIpAddress, newMaskLength);
 }

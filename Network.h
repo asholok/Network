@@ -20,6 +20,7 @@ class Network {
 		void validateIP(std::string address);
 		size_t convertToSize_t(std::string str);
 		std::string convertToString(size_t address);
+		Network* subnets;
 
 	public:
 		Network(std::string address, int maskLength);
@@ -30,7 +31,7 @@ class Network {
 		std::string getLastUsableAddress();
 		std::string getMask();
 		int getMaskLength();
-		int getTotalHosts();
+		size_t getTotalHosts();
 		bool isPublic();
 		Network* getSubnets();
 
