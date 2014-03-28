@@ -1,14 +1,8 @@
 #ifndef NETWORK_EXCEPTION
 #define NETWORK_EXCEPTION
 
-#include <string>
+class IPException {};
 
-class NetworkException {
- 	private:
- 		std::string error;
-	public:
-		NetworkException(int id);
-		
-};
+class WrongMaskException {};
 
 #endif // NETWORK_EXCEPTION

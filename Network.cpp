@@ -1,168 +1,119 @@
 #include "Network.h"
 
-size_t Network::convertToSize_t(std::string str) {
-	size_t result = 0;
+static const int maxMaskLength = 32;
 
-	for ( int i = 0, order = 10; i < str.length(); i++ ) {
-		char symbol = str[i];
-		
-		if ( symbol < '0' || symbol > '9' ) {
-			throw NetworkException(1);
-		}
-		result = result * order + (int(symbol) - 48);;
+Network::Network(const IPv4Address& address, int maskLength) {
+	setMask(maskLength);
+	ip = IPv4Address(address.getUintValue() & this->uintMask);
+	uintBroadcastValue = ip.getUintValue() | ~this->uintMask;
+	setFirstUsableAddress();
+	setLastUsableAddress();
+	setTotalHosts();
+}
+
+bool Network::contains(const std::string& address) const {
+	return ip.getUintValue() == (IPv4Address::strIpToUint(address) & this->uintMask);
+}
+
+void Network::setMask(int maskLength) {
+	if ( this->intMaskLength > maxMaskLength ) {
+		throw WrongMaskException();
 	}
-
-	return result;
+	this->intMaskLength = intMaskLength;
+	this->uintMask = ((1 << this->intMaskLength) - 1) << (maxMaskLength - this->intMaskLength);
 }
 
-std::string Network::convertToIpString(size_t address) {
-	std::string result;
-	size_t previusValue = 0;
+IPv4Address Network::getAddress() const {
+	return this->ip;
+}
 
-	for ( int i = 1, order = maxMaskLength - capacity; i <= quantityOctets; i++, order -= capacity ) {
-		size_t baseValue = previusValue << capacity;
-		size_t currentValue = address >> order;
- 		size_t resultValue = currentValue - baseValue;
-        
- 		previusValue = currentValue;
- 		result += std::to_string(resultValue);
- 		if ( i < quantityOctets ) {
- 			result += ".";
- 		}
+IPv4Address Network::getBroadcastAddress() const {
+	return this->broadcastAddress;
+}
+
+void Network::setTotalHosts() {
+	if ( this->intMaskLength > (maxMaskLength - 2) ) {
+		this->totalHosts = 0;
+	} else {
+		this->totalHosts = ~this->uintMask - 2;
+	}	
+}
+
+void Network::setBroadcastAddress(){
+	this->broadcastAddress = IPv4Address(this->uintBroadcastValue);
+}
+
+void Network::setFirstUsableAddress() {
+	if ( this->intMaskLength > (maxMaskLength - 2) ) {
+		this->firstUsableAddress = 0;
+	} else {
+		this->firstUsableAddress = IPv4Address(ip.getUintValue() + 1);
+	}	
+}
+
+IPv4Address Network::getFirstUsableAddress() const {
+	return this->firstUsableAddress;
+}
+
+void Network::setLastUsableAddress() {
+	if ( this->intMaskLength > (maxMaskLength - 2) ) {
+		this->lastUsableAddress = 0;
+	} else {
+		this->lastUsableAddress = IPv4Address(this->uintBroadcastValue - 1);
 	}
-
-	return result;
 }
 
-size_t Network::validateIP(std::string address) {
-	int size = address.length();
-	int count = 1;
-	size_t buff;
-	size_t result = 0;
-
-	if ( size > maxSize ) {
-		throw NetworkException(1);
-	}
-	for ( int i = 0; i < size ; i++, count++ ) {
-		std::string part;
-		
-		for ( char c = address[i]; c != '.' && i < size; i++, c = address[i] ) {
-			part += c;
-		}
-		if ( part.length() == 0 ) {
-			throw NetworkException(1);
-		}
-		buff = convertToSize_t(part);
-		if ( buff > maxOctetValue ) {
-			throw NetworkException(1);
-		}
-		result = result << capacity;
-		result += buff;
-	}
-	if ( count != quantityOctets ) {
-		throw NetworkException(1);
-	}
-	return result;
+IPv4Address Network::getLastUsableAddress() const {
+	return this->lastUsableAddress;
 }
 
-int validateMask(int maskLength) {
-	if ( maskLength < 0 || maskLength > maxMaskLength ) {
-		throw NetworkException(2);
-	}
-	return maskLength;
+int Network::getMaskLength() const {
+	return this->intMaskLength;
 }
 
-Network::Network(std::string address, int maskLength) {
-	subnets[2];
-	for ( int i = 0; i < 2; i++ ) {
-		subnets[i] = NULL;
-	}
-	this->intIpAddress = validateIP(address);
-	this->maskLength = validateMask(maskLength);
-	this->strIpAddress = address;
-	this->hostShift = maxMaskLength - maskLength;
-	this->netPart = (intIpAddress >> hostShift) << hostShift;
-	this->maxBrodcastValue = validateIP(brodcastString);
+unsigned int Network::getTotalHosts() const {
+	return this->totalHosts;
 }
 
-bool Network::contains(std::string address) {
-	size_t newNetPart = (validateIP(address) >> hostShift) << hostShift;
-
-	if ( netPart == newNetPart ) {
-		return true;
-	}
-	return false;
+unsigned int Network::getUintBroadcastValue() const {
+	return this->uintBroadcastValue;
 }
 
-std::string Network::getAddress() {
-	return strIpAddress;
+unsigned int Network::getUintMask() const {
+	this->uintMask;
 }
 
-std::string Network::getBroadcastAddress() {
-	size_t brodcastSufix = maxBrodcastValue - ((maxBrodcastValue >> hostShift) << hostShift);
-	size_t currentBrodcastValue = netPart ^ brodcastSufix;
-	std::string result = convertToIpString(currentBrodcastValue);
-
-	return result;
+unsigned int Network::getUintNetAddress() const {
+	return ip.getUintValue();
 }
 
-std::string Network::getFirstUsableAddress() {
-	if ( maskLength > 30 ) {
-		return NULL;
-	}
-	size_t firstUsableAddress = netPart + 1;
-	std::string result = convertToIpString(firstUsableAddress);
-
-	return result;
+std::string Network::toString() {
+	return ip.getStrValue() + "/" + std::to_string(this->intMaskLength);
 }
 
-std::string Network::getLastUsableAddress() {
-	if ( maskLength > 30 ) {
-		return NULL;
-	}
-	size_t lastAddressSufix = maxBrodcastValue - ((maxBrodcastValue >> hostShift) << hostShift) - 1;
-	size_t lastUsableIp = netPart ^ lastAddressSufix;
-	std::string result = convertToIpString(lastUsableIp);
-
-	return result;
-}
-
-std::string Network::getMask() {
-	std::string result = convertToIpString(netPart);
-
-	return result;
-}
-
-int Network::getMaskLength() {
-	return maskLength;
-}
-
-size_t Network::getTotalHosts() {
-	return pow(2, 32-maskLength) - 2;
+bool Network::isSubnet(const Network& net) {
+	return getUintNetAddress() <= net.getUintNetAddress() && 
+		net.getUintNetAddress() < this->uintBroadcastValue;
 }
 
 bool Network::isPublic() {
-	Network* firstPubNet = new Network("10.0.0.0", 8);
-	Network* secondPubNet = new Network("172.16.0.0", 12);
-	Network* thirdPubNet = new Network("192.168.0.0", 16);
-	
-	if ( firstPubNet->netPart == netPart || secondPubNet->netPart == netPart || thirdPubNet->netPart == netPart ) {
-		return true;
-	}
+	static Network firstPubNet  = Network(IPv4Address("10.0.0.0"), 8);
+	static Network secondPubNet = Network(IPv4Address("176.16.0.0"), 12);
+	static Network thirdPubNet  = Network(IPv4Address("192.168.0.0"), 16);
 
-	return false;
+	return isSubnet(firstPubNet) && isSubnet(secondPubNet) && isSubnet(thirdPubNet);
 }
 
-Network* Network::getSubnets() {
-	int newMaskLength;
-
-	if ( subnets[0] != NULL ) {
-		return subnets;
+void Network::setSubnets(std::set<class Network*>& subnets) {
+	if ( this->intMaskLength > (maxMaskLength - 2) ) {
+		return;
 	}
-	if ( maskLength < 30 ) {
-		newMaskLength = maskLength + 1
-	} else {
-		throw NetworkException(3);
-	}
-	subnets[0] = new Network(strIpAddress, newMaskLength);
+	Network* firstSubnet = new Network(getAddress(), this->intMaskLength+1);
+	unsigned int newUintNetAddress = firstSubnet->getUintBroadcastValue() + 1;
+	Network* secondSubnet = new Network(IPv4Address::uintIpToString(newUintNetAddress), this->intMaskLength+1);
+	
+	subnets.insert(firstSubnet);
+	subnets.insert(secondSubnet);
+	delete firstSubnet;
+	delete secondSubnet;
 }
