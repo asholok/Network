@@ -1,13 +1,22 @@
 #include "IPv4Address.h"
 
 IPv4Address::IPv4Address(unsigned int address) {
+    if ( address == 0 ) {
+        this->strIpValue = "null";
+    } else {
+        this->strIpValue =  uintIpToString(address);
+    }
     this->uintIpValue = address;
-    this->strIpValue =  uintIpToString(address);
+    
 }
 
 IPv4Address::IPv4Address(const std::string& address) {
-    this->uintIpValue = strIpToUint(address);
-    this->strIpValue =  address;
+    if ( address == "null" ) {
+        this->uintIpValue = 0;
+    } else {
+        this->uintIpValue = strIpToUint(address);
+    }
+    this->strIpValue = address;
 }
 
 unsigned int IPv4Address::strIpToUint(const std::string& address) {
@@ -24,14 +33,23 @@ unsigned int IPv4Address::strIpToUint(const std::string& address) {
 }
 
 bool IPv4Address::lessThan(IPv4Address address) {
+    if ( this->strIpValue == "null" ) {
+        return false;
+    }
     return this->uintIpValue < address.getUintValue();
 }
 
 bool IPv4Address::greaterThan(IPv4Address address) {
+    if ( this->strIpValue == "null" ) {
+        return false;
+    }
     return this->uintIpValue > address.getUintValue();
 }
 
 bool IPv4Address::equals(IPv4Address address) {
+    if ( this->strIpValue == "null" ) {
+        return false;
+    }
     return this->uintIpValue == address.getUintValue();
 }
 

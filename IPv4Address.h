@@ -15,7 +15,6 @@ class IPv4Address {
 		unsigned int uintIpValue;
 		std::string strIpValue;
 
-
 	public:	
 		IPv4Address(unsigned int address = 0);
 		IPv4Address(const std::string& address);

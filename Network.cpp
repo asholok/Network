@@ -45,7 +45,7 @@ void Network::setBroadcastAddress(){
 
 void Network::setFirstUsableAddress() {
 	if ( this->intMaskLength > (maxMaskLength - 2) ) {
-		this->firstUsableAddress = 0;
+		this->firstUsableAddress = IPv4Address();
 	} else {
 		this->firstUsableAddress = IPv4Address(ip.getUintValue() + 1);
 	}	
@@ -57,7 +57,7 @@ IPv4Address Network::getFirstUsableAddress() const {
 
 void Network::setLastUsableAddress() {
 	if ( this->intMaskLength > (maxMaskLength - 2) ) {
-		this->lastUsableAddress = 0;
+		this->lastUsableAddress = IPv4Address();
 	} else {
 		this->lastUsableAddress = IPv4Address(this->uintBroadcastValue - 1);
 	}
