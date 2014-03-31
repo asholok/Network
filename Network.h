@@ -30,7 +30,7 @@ class Network {
 	public:
 		Network(const IPv4Address& address, int maskLength);
 		~Network();
-		bool contains(const std::string& address) const;
+		bool contains(const IPv4Address& address) const;
 		IPv4Address getAddress() const;
 		IPv4Address getBroadcastAddress() const;
 		IPv4Address getFirstUsableAddress() const;

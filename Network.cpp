@@ -11,8 +11,8 @@ Network::Network(const IPv4Address& address, int maskLength) {
 	setTotalHosts();
 }
 
-bool Network::contains(const std::string& address) const {
-	return ip.getUintValue() == (IPv4Address::strIpToUint(address) & this->uintMask);
+bool Network::contains(const IPv4Address& address) const {
+	return ip.getUintValue() == (address.getUintValue() & this->uintMask);
 }
 
 void Network::setMask(int maskLength) {
@@ -92,8 +92,8 @@ std::string Network::toString() {
 }
 
 bool Network::isSubnet(const Network& net) {
-	return getUintNetAddress() <= net.getUintNetAddress() && 
-		net.getUintNetAddress() < this->uintBroadcastValue;
+	return getUintNetAddress() >= net.getUintNetAddress() && 
+		net.getUintBroadcastValue() > getUintNetAddress();
 }
 
 bool Network::isPublic() {
